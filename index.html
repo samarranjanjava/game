@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Kids Math Game</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <style>
+      body {
+        font-family: Arial;
+        text-align: center;
+        background: #f0f8ff;
+      }
+
+      h1 {
+        color: #333;
+      }
+
+      .question {
+        font-size: 40px;
+        margin: 30px;
+        font-weight: bold;
+      }
+
+      .num-btn {
+        font-size: 30px;
+        padding: 20px;
+        margin: 15px;
+        border-radius: 12px;
+        border: none;
+        cursor: pointer;
+        background: #4caf50;
+        color: white;
+      }
+
+      .num-btn:hover {
+        background: #45a049;
+      }
+
+      input {
+        padding: 10px;
+        font-size: 20px;
+        width: 120px;
+        text-align: center;
+      }
+
+      button {
+        padding: 10px 15px;
+        font-size: 18px;
+        margin: 10px;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+      }
+
+      #submitBtn {
+        background: #2196f3;
+        color: white;
+      }
+
+      #result {
+        font-size: 24px;
+        margin-top: 20px;
+        font-weight: bold;
+      }
+
+      #score {
+        font-size: 20px;
+        margin-top: 10px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1>🎮 Smart Math Game</h1>
+
+    <select onchange="setMode(this.value)">
+      <option value="compare">Big Number</option>
+      <option value="table">Tables</option>
+      <option value="division">Division</option>
+    </select>
+
+    <div class="question" id="question"></div>
+
+    <div id="options"></div>
+
+    <div id="inputArea" style="display: none">
+      <input type="number" id="answerInput" placeholder="Answer" />
+      <button id="submitBtn" onclick="submitAnswer()">Submit</button>
+    </div>
+
+    <div id="result"></div>
+    <div id="score">Score: 0</div>
+
+    <script>
+      let mode = "compare";
+      let score = 0;
+      let correctAnswer = "";
+
+      // 🔊 Voice feedback
+      function speak(text) {
+        speechSynthesis.cancel();
+        let msg = new SpeechSynthesisUtterance(text);
+        msg.rate = 0.9;
+        speechSynthesis.speak(msg);
+      }
+
+      // 🎮 Generate question
+      function generate() {
+        document.getElementById("result").innerText = "";
+        document.getElementById("options").innerHTML = "";
+        document.getElementById("inputArea").style.display = "none";
+
+        if (mode === "compare") {
+          let a = Math.floor(Math.random() * 100);
+          let b = Math.floor(Math.random() * 100);
+
+          correctAnswer = Math.max(a, b).toString();
+
+          document.getElementById("question").innerText =
+            "Select Bigger Number";
+
+          document.getElementById("options").innerHTML = `
+            <button class="num-btn" onclick="check('${a}')">${a}</button>
+            <button class="num-btn" onclick="check('${b}')">${b}</button>
+        `;
+
+          speak(`Which number is bigger? ${a} or ${b}`);
+        } else if (mode === "table") {
+          let num = Math.floor(Math.random() * 9) + 1;
+          let mul = Math.floor(Math.random() * 10) + 1;
+
+          correctAnswer = (num * mul).toString();
+
+          document.getElementById("question").innerText = `${num} × ${mul} = ?`;
+
+          document.getElementById("inputArea").style.display = "block";
+
+          speak(`${num} times ${mul}`);
+        } else if (mode === "division") {
+          let b = Math.floor(Math.random() * 9) + 1;
+          let ans = Math.floor(Math.random() * 10) + 1;
+          let a = b * ans;
+
+          correctAnswer = ans.toString();
+
+          document.getElementById("question").innerText = `${a} ÷ ${b} = ?`;
+
+          document.getElementById("inputArea").style.display = "block";
+
+          speak(`${a} divided by ${b}`);
+        }
+      }
+
+      // 🔁 Mode change
+      function setMode(m) {
+        mode = m;
+        generate();
+      }
+
+      // ✅ Button click check (for big number)
+      function check(selected) {
+        evaluateAnswer(selected);
+      }
+
+      // ✅ Input answer submit
+      function submitAnswer() {
+        let val = document.getElementById("answerInput").value;
+        evaluateAnswer(val);
+      }
+
+      // ✅ Evaluate
+      function evaluateAnswer(ans) {
+        if (ans === correctAnswer) {
+          score++;
+          document.getElementById("result").innerText = "✅ Correct!";
+          speak("Great job!");
+        } else {
+          document.getElementById("result").innerText =
+            "❌ Wrong! Correct answer is " + correctAnswer;
+          speak("Wrong answer");
+        }
+
+        document.getElementById("score").innerText = "Score: " + score;
+
+        setTimeout(() => {
+          document.getElementById("answerInput").value = "";
+          generate();
+        }, 2000);
+      }
+
+      // Init
+      generate();
+    </script>
+  </body>
+</html>
