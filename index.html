@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Number Comparison Game</title>
+    <title>Smart Number Comparison</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <style>
@@ -32,14 +32,12 @@
         padding: 3px;
       }
 
-      /* 🔴 Winning digit */
       .win {
         color: red;
         font-weight: bold;
         animation: blink 0.6s infinite;
       }
 
-      /* blinking animation */
       @keyframes blink {
         50% {
           opacity: 0;
@@ -52,7 +50,7 @@
       }
 
       .big {
-        color: red;
+        color: green;
         font-weight: bold;
         font-size: 28px;
       }
@@ -60,9 +58,9 @@
   </head>
 
   <body>
-    <h1>🎯 Compare Numbers</h1>
+    <h1>🎯 Learn to Compare Numbers</h1>
 
-    <button onclick="generate()">New Question</button>
+    <button onclick="generate()"><h1>Next Question</h1></button>
 
     <div id="numbers"></div>
 
@@ -72,6 +70,18 @@
     <script>
       let numbers = [];
       let correct = "";
+
+      // 🔊 Speak function
+      function speak(text) {
+        return new Promise((resolve) => {
+          speechSynthesis.cancel();
+          let msg = new SpeechSynthesisUtterance(text);
+          msg.rate = 0.85;
+
+          msg.onend = resolve;
+          speechSynthesis.speak(msg);
+        });
+      }
 
       // Generate numbers
       function generate() {
@@ -94,16 +104,19 @@
         });
 
         document.getElementById("numbers").innerHTML = html;
+
+        speak("Select the biggest number");
       }
 
       // Check answer
       function check(ans) {
         if (ans === correct) {
           document.getElementById("result").innerText = "✅ Correct!";
+          speak("Excellent! You are right!");
           document.getElementById("explanation").innerHTML = "";
         } else {
           document.getElementById("result").innerText =
-            "❌ Wrong! Let's learn...";
+            "❌ Wrong! Let me explain";
           explain();
         }
       }
@@ -112,52 +125,49 @@
       async function explain() {
         let exp = document.getElementById("explanation");
 
-        // Step 1: Digit count
+        // STEP 1
         exp.innerHTML += "<div class='step'>Step 1: Count digits</div>";
+        await speak("First, count the number of digits");
 
-        numbers.forEach((n) => {
-          exp.innerHTML += `<div class='step'>${n} → ${n.toString().length} digits</div>`;
-        });
-
-        await sleep(1500);
+        for (let n of numbers) {
+          exp.innerHTML += `<div class='step'>${n} has ${n.toString().length} digits</div>`;
+          await speak(`${n} has ${n.toString().length} digits`);
+        }
 
         let maxDigits = Math.max(...numbers.map((n) => n.toString().length));
         let candidates = numbers.filter(
           (n) => n.toString().length === maxDigits,
         );
 
-        exp.innerHTML += `<div class='step'>Numbers with max digits: ${candidates.join(", ")}</div>`;
-
-        await sleep(1500);
+        exp.innerHTML += `<div class='step'>Numbers with highest digits: ${candidates.join(", ")}</div>`;
+        await speak("Numbers with highest digits are " + candidates.join(", "));
 
         if (candidates.length === 1) {
           exp.innerHTML += `<div class='big'>Biggest number is ${candidates[0]}</div>`;
+          await speak("So the biggest number is " + candidates[0]);
           return;
         }
 
-        // Step 2: Place value comparison
+        // STEP 2
         exp.innerHTML += "<div class='step'>Step 2: Compare place values</div>";
+        await speak("Now we compare place values");
 
         let maxLen = candidates[0].toString().length;
 
         for (let i = 0; i < maxLen; i++) {
-          await sleep(1500);
-
           let digits = candidates.map((n) => Number(n.toString()[i]));
           let maxDigit = Math.max(...digits);
 
           exp.innerHTML += `<div class='step'>
-        Comparing position ${i + 1}:
         ${candidates
           .map((n) => {
             let str = n.toString();
-
             return str
               .split("")
               .map((d, idx) => {
                 if (idx === i) {
                   if (Number(d) === maxDigit) {
-                    return `<span class="win">${d}</span>`; // 🔴 winner
+                    return `<span class="win">${d}</span>`;
                   } else {
                     return `<span class="highlight">${d}</span>`;
                   }
@@ -169,7 +179,7 @@
           .join(" , ")}
         </div>`;
 
-          await sleep(2000);
+          await speak("Comparing next digit");
 
           let newCandidates = candidates.filter(
             (n) => Number(n.toString()[i]) === maxDigit,
@@ -177,16 +187,12 @@
 
           if (newCandidates.length === 1) {
             exp.innerHTML += `<div class='big'>Biggest number is ${newCandidates[0]}</div>`;
+            await speak("So the biggest number is " + newCandidates[0]);
             return;
           }
 
           candidates = newCandidates;
         }
-      }
-
-      // Sleep
-      function sleep(ms) {
-        return new Promise((resolve) => setTimeout(resolve, ms));
       }
 
       // Init
